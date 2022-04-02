@@ -18,30 +18,34 @@ import {
  * 4. 上記3.で取得したメッセージを既読に変更
  */
 (async () => {
-  dotenv.config();
+  try{
+    dotenv.config();
 
-  const cwKey = process.env.CW_KEY ?? "";
-  const targetRoomIds = (process.env.CW_TARGET_ROOMS ?? "").split(",");
+    const cwKey = process.env.CW_KEY ?? "";
+    const targetRoomIds = (process.env.CW_TARGET_ROOMS ?? "").split(",");
 
-  const unReadRoomIds =
-    (await getGroups(cwKey))
-      ?.filter((g) => g.unread_num > 0 && g.type === "group")
-      .map((g) => g.room_id.toString()) ?? [];
+    const unReadRoomIds =
+      (await getGroups(cwKey))
+        ?.filter((g) => g.unread_num > 0 && g.type === "group")
+        .map((g) => g.room_id.toString()) ?? [];
 
-  const unReadTargetRoomIds = [targetRoomIds, unReadRoomIds]
-    .flat()
-    .filter(
-      (value, index, self) =>
-        self.indexOf(value) === index && self.lastIndexOf(value) !== index
-    );
+    const unReadTargetRoomIds = [targetRoomIds, unReadRoomIds]
+      .flat()
+      .filter(
+        (value, index, self) =>
+          self.indexOf(value) === index && self.lastIndexOf(value) !== index
+      );
 
-  unReadTargetRoomIds.map(async (g) => {
-    const lastMessage = await getMessage<CwMessage | null>(
-      cwKey,
-      g,
-      (ms: CwMessage[]) => (ms.length > 0 ? ms[ms.length - 1] : null)
-    );
+    unReadTargetRoomIds.map(async (g) => {
+      const lastMessage = await getMessage<CwMessage | null>(
+        cwKey,
+        g,
+        (ms: CwMessage[]) => (ms.length > 0 ? ms[ms.length - 1] : null)
+      );
 
-    lastMessage && readMessage(cwKey, g, lastMessage.message_id);
-  });
+      lastMessage && readMessage(cwKey, g, lastMessage.message_id);
+    });
+  }catch(ex){
+    console.log(ex);
+  }
 })();
