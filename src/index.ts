@@ -46,6 +46,9 @@ import {
       lastMessage && readMessage(cwKey, g, lastMessage.message_id);
     });
   } catch (error) {
-    console.error(error);
+    const err = error as Error;
+    console.error("name:", err.name);
+    console.error("message:", err.message);
+    console.error("stack:", err.stack);
   }
 })();
