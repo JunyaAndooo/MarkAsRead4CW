@@ -1,8 +1,7 @@
 name: mark-as-read
 on:
-  schedule:
-    - cron:  '0 4 * * 3'
-
+  workflow_dispatch:
+  
 jobs:
   notify:
     runs-on: ubuntu-latest
