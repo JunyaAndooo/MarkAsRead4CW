@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   
 jobs:
-  notify:
+  mark-as-read:
     runs-on: ubuntu-latest
     environment: action
     timeout-minutes: 10
