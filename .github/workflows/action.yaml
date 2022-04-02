@@ -1,0 +1,28 @@
+name: mark-as-read
+on:
+  schedule:
+    - cron:  '0 4 * * 3'
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    environment: action
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Restore cache
+        uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+      - name: Insatll package
+        run: yarn install
+      - name: Build
+        run: yarn build
+      - name: Action
+        run: |
+          node ./dist/index.js
+    env:
+      CW_KEY: ${{ secrets.CW_KEY }}
+      CW_TARGET_ROOMS: ${{ secrets.CW_TARGET_ROOMS }}
