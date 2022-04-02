@@ -46,6 +46,6 @@ import {
       lastMessage && readMessage(cwKey, g, lastMessage.message_id);
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 })();
