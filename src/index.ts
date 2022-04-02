@@ -18,7 +18,7 @@ import {
  * 4. 上記3.で取得したメッセージを既読に変更
  */
 (async () => {
-  try{
+  try {
     dotenv.config();
 
     const cwKey = process.env.CW_KEY ?? "";
@@ -45,7 +45,7 @@ import {
 
       lastMessage && readMessage(cwKey, g, lastMessage.message_id);
     });
-  }catch(ex){
-    console.log(ex);
+  } catch (error) {
+    console.log(error);
   }
 })();
