@@ -1,7 +1,7 @@
 name: mark-as-read
 on:
   schedule:
-    - cron:  '*/5 * * * *'
+    - cron:  '*/5 7-23 * * *'
   
 jobs:
   mark-as-read:
