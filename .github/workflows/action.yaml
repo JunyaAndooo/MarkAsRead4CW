@@ -1,8 +1,7 @@
 name: mark-as-read
 on:
   schedule:
-    - cron: '*/10 * * * *'
-  workflow_dispatch:
+    - cron: '*/10 0-15 * * *'
 
 jobs:
   mark-as-read:
