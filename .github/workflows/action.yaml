@@ -1,6 +1,6 @@
 name: mark-as-read
 on:
-  schedule:
+  #schedule:
     #- cron: '13 0-15 * * *'
 
 jobs:
