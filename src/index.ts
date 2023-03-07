@@ -9,7 +9,9 @@ import {
 /*
  * 対象のルームを既読にします。
  *
- * 1. 既読にするグループを取得（コンフィグに記載）
+ * 1. 既読にするグループを取得（コンフィグに記載）。下記処理を追加
+ *   - 自分宛てのものは既読にしないリスト
+ *   - 絶対に既読にするリスト
  * 2. グループ一覧を取得
  *   - unread_numが0以上のもの
  *   - typeが"group"のもの
@@ -20,21 +22,42 @@ import {
 (async () => {
   try {
     dotenv.config();
-
     const cwKey = process.env.CW_KEY ?? "";
-    const targetRoomIds = (process.env.CW_TARGET_ROOMS ?? "").split(",");
 
-    const unReadRoomIds =
-      (await getGroups(cwKey))
+    const rooms = await getGroups(cwKey);
+
+    const getMatchingRoomIds = (
+      unreadRoomIds: string[],
+      targetRoomIds: string[]
+    ) => {
+      return [targetRoomIds, unreadRoomIds]
+        .flat()
+        .filter(
+          (value, index, self) =>
+            self.indexOf(value) === index && self.lastIndexOf(value) !== index
+        );
+    };
+
+    const targetRoomIdsExcludeMe = getMatchingRoomIds(
+      rooms
+        ?.filter(
+          (g) => g.unread_num > 0 && g.mention_num === 0 && g.type === "group"
+        )
+        .map((g) => g.room_id.toString()) ?? [],
+      (process.env.CW_READ_ROOMIDS_EXCLUDE_ME ?? "").split(",")
+    );
+
+    const targetAlwaysUnreadRoomIds = getMatchingRoomIds(
+      rooms
         ?.filter((g) => g.unread_num > 0 && g.type === "group")
-        .map((g) => g.room_id.toString()) ?? [];
+        .map((g) => g.room_id.toString()) ?? [],
+      (process.env.CW_ALWAYS_READ_ROOMIDS ?? "").split(",")
+    );
 
-    const unReadTargetRoomIds = [targetRoomIds, unReadRoomIds]
-      .flat()
-      .filter(
-        (value, index, self) =>
-          self.indexOf(value) === index && self.lastIndexOf(value) !== index
-      );
+    const unReadTargetRoomIds = [
+      targetRoomIdsExcludeMe,
+      targetAlwaysUnreadRoomIds,
+    ].flat();
 
     unReadTargetRoomIds.map(async (g) => {
       const lastMessage = await getMessage<CwMessage | null>(
