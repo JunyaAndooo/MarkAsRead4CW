@@ -36,7 +36,7 @@ describe("getGroups", () => {
     mock.onGet("https://api.chatwork.com/v2/rooms").reply(200, rooms);
 
     // 関数を実行して結果を取得
-    const result = await getGroups(cwKey);
+    const result = await getGroups(cwKey, instance);
 
     // 結果が期待通りかどうか検証
     expect(result).toEqual(rooms);
@@ -48,7 +48,7 @@ describe("getGroups", () => {
     mock.onGet("https://api.chatwork.com/v2/rooms").reply(401);
 
     // 関数がエラーを投げることを検証
-    await expect(getGroups(cwKey)).rejects.toThrow(
+    await expect(getGroups(cwKey, instance)).rejects.toThrow(
       `レスポンスコードが200以外のものが返却されました`
     );
   });

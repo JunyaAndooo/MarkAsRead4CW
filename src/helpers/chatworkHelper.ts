@@ -1,4 +1,4 @@
-import axios, { Axios } from "axios";
+import axios, { AxiosInstance } from "axios";
 
 /**
  * CwMessageオブジェクト。
@@ -33,20 +33,23 @@ export type CwRoom = Readonly<{
 }>;
 
 /**
- * グループ情報を取得します。
+ * グループ情報を取得。
  * @param {string} cwKey チャットワークのアクセスキー
  * @param {axios.AxiosInstance} axiosInstance Axiosのインスタンス
  * @returns {CwRoom[]} チャットワークのルーム一覧
+ * @throws チャットワークからレスポンスエラーが返ってきた場合
  */
-export const getGroups = async (cwKey: string): Promise<CwRoom[]> => {
-  const res = await axios
+export const getGroups = async (
+  cwKey: string,
+  axiosInstance: AxiosInstance = axios
+): Promise<CwRoom[]> => {
+  const res = await axiosInstance
     .get(`https://api.chatwork.com/v2/rooms`, {
       headers: {
         "X-ChatWorkToken": cwKey,
       },
     })
     .catch((err) => {
-      console.log(JSON.stringify(err));
       return err.response;
     });
   if (res.status !== 200) {
@@ -58,18 +61,21 @@ export const getGroups = async (cwKey: string): Promise<CwRoom[]> => {
 };
 
 /**
- * メッセージを取得します。
+ * メッセージを取得。
  * @typeParam T メッセージの型
  * @param {string} cwKey チャットワークのアクセスキー
  * @param {string} cwRoomId チャットワークの部屋ID
+ * @param {axios.AxiosInstance} axiosInstance Axiosのインスタンス
  * @returns {T} メッセージ
+ * @throws チャットワークからレスポンスエラーが返ってきた場合
  */
 export const getMessage = async <T>(
   cwKey: string,
   cwRoomId: string,
-  filter: (data: CwMessage[]) => T
+  filter: (data: CwMessage[]) => T,
+  axiosInstance: AxiosInstance = axios
 ): Promise<T> => {
-  const res = await axios
+  const res = await axiosInstance
     .get(`https://api.chatwork.com/v2/rooms/${cwRoomId}/messages`, {
       headers: {
         "X-ChatWorkToken": cwKey,
@@ -90,17 +96,19 @@ export const getMessage = async <T>(
 };
 
 /**
- * 既読にします。
+ * 既読に変更。
  * @param {string} cwKey チャットワークのアクセスキー
  * @param {string} cwRoomId チャットワークの部屋ID
+ * @param {axios.AxiosInstance} axiosInstance Axiosのインスタンス
  * @returns {void}
  */
 export const readMessage = async (
   cwKey: string,
   cwRoomId: string,
-  messageId: string
+  messageId: string,
+  axiosInstance: AxiosInstance = axios
 ): Promise<void> => {
-  const res = await axios
+  const res = await axiosInstance
     .put(
       `https://api.chatwork.com/v2/rooms/${cwRoomId}/messages/read`,
       {

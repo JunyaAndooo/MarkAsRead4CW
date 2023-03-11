@@ -15,12 +15,7 @@ export const getConfing = (): Config => {
       "Chatworkの自身以外を既読にするルームID一覧が設定されていません。"
     );
   }
-  const chatworkAlwaysReadRoomIds = process.env.CW_ALWAYS_READ_ROOMIDS;
-  if (!chatworkAlwaysReadRoomIds) {
-    throw new Error(
-      "Chatworkの常に既読にするルームID一覧が設定されていません。"
-    );
-  }
+  const chatworkAlwaysReadRoomIds = process.env.CW_ALWAYS_READ_ROOMIDS ?? "";
   return {
     chatworkKey,
     chatworkReadRoomIdsExcludeMe: chatworkReadRoomIdsExcludeMe.split(","),
