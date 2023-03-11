@@ -1,7 +1,7 @@
-import axios from "axios";
+import axios, { Axios } from "axios";
 
-/*
- * CwMessageオブジェクト
+/**
+ * CwMessageオブジェクト。
  */
 export type CwMessage = Readonly<{
   body: string;
@@ -13,8 +13,8 @@ export type CwMessage = Readonly<{
   };
 }>;
 
-/*
- * CwRoomオブジェクト
+/**
+ * CwRoomオブジェクト。
  */
 export type CwRoom = Readonly<{
   room_id: number;
@@ -32,10 +32,13 @@ export type CwRoom = Readonly<{
   last_update_time: number;
 }>;
 
-/*
+/**
  * グループ情報を取得します。
+ * @param {string} cwKey チャットワークのアクセスキー
+ * @param {axios.AxiosInstance} axiosInstance Axiosのインスタンス
+ * @returns {CwRoom[]} チャットワークのルーム一覧
  */
-export const getGroups = async (cwKey: string): Promise<CwRoom[] | null> => {
+export const getGroups = async (cwKey: string): Promise<CwRoom[]> => {
   const res = await axios
     .get(`https://api.chatwork.com/v2/rooms`, {
       headers: {
@@ -43,22 +46,29 @@ export const getGroups = async (cwKey: string): Promise<CwRoom[] | null> => {
       },
     })
     .catch((err) => {
+      console.log(JSON.stringify(err));
       return err.response;
     });
   if (res.status !== 200) {
-    return null;
+    throw new Error(
+      `レスポンスコードが200以外のものが返却されました:${JSON.stringify(res)}`
+    );
   }
   return res.data;
 };
 
-/*
+/**
  * メッセージを取得します。
+ * @typeParam T メッセージの型
+ * @param {string} cwKey チャットワークのアクセスキー
+ * @param {string} cwRoomId チャットワークの部屋ID
+ * @returns {T} メッセージ
  */
 export const getMessage = async <T>(
   cwKey: string,
   cwRoomId: string,
   filter: (data: CwMessage[]) => T
-): Promise<T | null> => {
+): Promise<T> => {
   const res = await axios
     .get(`https://api.chatwork.com/v2/rooms/${cwRoomId}/messages`, {
       headers: {
@@ -72,13 +82,18 @@ export const getMessage = async <T>(
       return err.response;
     });
   if (res.status !== 200) {
-    return null;
+    throw new Error(
+      `レスポンスコードが200以外のものが返却されました:${JSON.stringify(res)}`
+    );
   }
   return filter(res.data);
 };
 
-/*
+/**
  * 既読にします。
+ * @param {string} cwKey チャットワークのアクセスキー
+ * @param {string} cwRoomId チャットワークの部屋ID
+ * @returns {void}
  */
 export const readMessage = async (
   cwKey: string,
