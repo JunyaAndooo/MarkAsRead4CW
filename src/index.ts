@@ -5,6 +5,8 @@ import {
   getMessage,
   readMessage,
 } from "./helpers/chatworkHelper";
+import { getConfing } from "./helpers/getConfig";
+import { getMatchingRoomIds } from "./helpers/getMatchingRoomIds";
 
 /*
  * 対象のルームを既読にします。
@@ -20,38 +22,24 @@ import {
  * 4. 上記3.で取得したメッセージを既読に変更
  */
 (async () => {
+  dotenv.config();
   try {
-    dotenv.config();
-    const cwKey = process.env.CW_KEY ?? "";
+    const config = getConfing();
 
-    const rooms = await getGroups(cwKey);
-
-    const getMatchingRoomIds = (
-      unreadRoomIds: string[],
-      targetRoomIds: string[]
-    ) => {
-      return [targetRoomIds, unreadRoomIds]
-        .flat()
-        .filter(
-          (value, index, self) =>
-            self.indexOf(value) === index && self.lastIndexOf(value) !== index
-        );
-    };
+    const unreadRooms = (await getGroups(config.chatworkKey))?.filter(
+      (g) => g.unread_num > 0
+    );
 
     const targetRoomIdsExcludeMe = getMatchingRoomIds(
-      rooms
-        ?.filter(
-          (g) => g.unread_num > 0 && g.mention_num === 0 && g.type === "group"
-        )
+      unreadRooms
+        ?.filter((g) => g.mention_num === 0)
         .map((g) => g.room_id.toString()) ?? [],
-      (process.env.CW_READ_ROOMIDS_EXCLUDE_ME ?? "").split(",")
+      config.chatworkReadRoomIdsExcludeMe
     );
 
     const targetAlwaysUnreadRoomIds = getMatchingRoomIds(
-      rooms
-        ?.filter((g) => g.unread_num > 0 && g.type === "group")
-        .map((g) => g.room_id.toString()) ?? [],
-      (process.env.CW_ALWAYS_READ_ROOMIDS ?? "").split(",")
+      unreadRooms?.map((g) => g.room_id.toString()) ?? [],
+      config.chatworkAlwaysReadRoomIds
     );
 
     const unReadTargetRoomIds = [
@@ -59,15 +47,18 @@ import {
       targetAlwaysUnreadRoomIds,
     ].flat();
 
-    unReadTargetRoomIds.map(async (g) => {
-      const lastMessage = await getMessage<CwMessage | null>(
-        cwKey,
-        g,
-        (ms: CwMessage[]) => (ms.length > 0 ? ms[ms.length - 1] : null)
-      );
+    await Promise.all(
+      unReadTargetRoomIds.map(async (g) => {
+        const lastMessage = await getMessage<CwMessage | null>(
+          config.chatworkKey,
+          g,
+          (ms: CwMessage[]) => (ms.length > 0 ? ms[ms.length - 1] : null)
+        );
 
-      lastMessage && readMessage(cwKey, g, lastMessage.message_id);
-    });
+        lastMessage &&
+          readMessage(config.chatworkKey, g, lastMessage.message_id);
+      })
+    );
   } catch (error) {
     const err = error as Error;
     console.error("name:", err.name);
